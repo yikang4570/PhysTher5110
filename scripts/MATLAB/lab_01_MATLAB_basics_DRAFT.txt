@@ -1,0 +1,108 @@
+% Assigning values to and basic operations
+x = 2;
+x = x + 3;
+x * 3;
+
+y = 2;
+x / y;
+
+z = 'word';
+x * z;
+
+x < 2;
+x > 2;
+
+strcmp(z, 'word'); % Returns 1 if true (equal), 0 otherwise
+strcmp(z, 'word') < 2; % Similar to (z < 2) in R, but not recommended in MATLAB
+
+ischar(z);
+isnumeric(z); % Note: In MATLAB, 'z' will be considered numeric (1) since it contains a number, but it's not recommended to mix data types in a variable.
+
+% Vectors
+x = 2; % vector of length one
+x = [2, 3, 4]; % vector of length 3
+x;
+y;
+x .* y; % element-wise multiplication
+
+y = [0, 1, 0]; % element-wise operations for vectors of the same length
+x;
+y;
+x .* y;
+
+z = {'red', 'red', 'blue', 'blue', 'green', 'green'};
+unique(z); % Shows unique elements in 'z'
+
+% Matrices
+mat_data = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+mat1 = reshape(mat_data, 3, 3);
+mat1;
+
+mat1(1, :); % Get the first row
+mat1(:, 3); % Get the third column
+mat1(1, 3);
+
+% Cell Arrays (similar to lists in R)
+my_list = {2.5, true, 91:87};
+my_list;
+
+my_list{1};
+my_list{3};
+my_list{3}(3); % Accessing individual elements of the third cell (array)
+
+% Tables (similar to data frames in R)
+sex = categorical([repmat('male', 1, 10), repmat('female', 1, 10)]);
+height = [normrnd(67, 2.5, 1, 10), normrnd(64, 2.2, 1, 10)];
+
+DAT1 = table(sex', height', 'VariableNames', {'sex', 'height'});
+DAT1;
+
+% Plotting
+figure;
+boxplot(DAT1.height, DAT1.sex);
+xlabel('Sex');
+ylabel('Height');
+
+% More about functions and arguments
+x;
+summary(x); % There is no built-in 'summary' function in MATLAB.
+
+class(x);
+class(z);
+class(my_list);
+class(DAT1);
+
+whos my_list; % Equivalent to 'str' in R
+whos DAT1; % Equivalent to 'str' in R
+
+mean(x);
+x = [x, NaN, 0, 15];
+x;
+nanmean(x); % MATLAB's version of mean() with 'NaN' handling.
+
+% Loading packages is not required in MATLAB. Functions from all installed toolboxes are automatically available.
+
+% Setting and checking the working directory
+pwd;
+ls;
+
+% The working directory can be set manually in MATLAB using the "Current Folder" panel in the UI.
+
+% Importing data from your computer
+% Note: In MATLAB, the '/' is used as a file separator on all platforms.
+% So, you don't need to change it for different operating systems.
+cd ~/GitHub/ReproRehab/;
+ls;
+ls ./data/;
+
+DAT2 = readtable('./data/data_PROCESSED_EEG.csv');
+head(DAT2); % Display the first few rows of the table.
+
+% Importing data from the web
+DAT3 = readtable('https://raw.githubusercontent.com/keithlohse/grad_stats/main/data/data_THERAPY.csv');
+DAT3;
+
+% A simple for-loop
+for i = 1:3
+    disp('Hello!');
+end
