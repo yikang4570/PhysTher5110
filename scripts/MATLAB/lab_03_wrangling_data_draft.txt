@@ -1,0 +1,44 @@
+% Wrangling Data
+cd '~/Instrumentation/';
+DATA = readtable('./data/MASTER_EO_and_EC_EEG.csv');
+
+% Selecting specific columns
+head(DATA);
+DAT2 = DATA(:, {'subID', 'condition', 'Hz', 'Fz'});
+head(DAT2);
+
+DAT2(:, 'X') = []; % Remove the 'X' column
+head(DAT2);
+
+% Filtering specific rows
+DAT3 = DAT2(DAT2.subID == 'oa01', :);
+head(DAT3);
+
+DAT3 = DAT2(ismember(DAT2.subID, {'oa01', 'oa02'}), :);
+head(DAT3);
+
+DAT3 = DAT2(DAT2.subID == 'oa01' & DAT2.Hz == 0.997, :);
+head(DAT3);
+
+% Computing new variables
+DAT3.Frontal = (DAT3.F3 + DAT3.F7 + DAT3.Fz + DAT3.F4 + DAT3.F8) / 5;
+head(DAT3);
+
+DAT3.frontal = mean([DAT3.F3, DAT3.F7, DAT3.Fz, DAT3.F4, DAT3.F8], 2, 'omitnan');
+DAT3.central = mean([DAT3.C3, DAT3.Cz, DAT3.C4], 2, 'omitnan');
+DAT3.parietal = mean([DAT3.P3, DAT3.P7, DAT3.Pz, DAT3.P4, DAT3.P8], 2, 'omitnan');
+DAT3.occipital = mean([DAT3.O1, DAT3.Oz, DAT3.O2], 2, 'omitnan');
+head(DAT3);
+
+% Selecting only the columns we want
+DAT4 = DAT3(:, {'subID', 'condition', 'Hz', 'Frontal', 'central', 'parietal', 'occipital'});
+DAT4.ln_Hz = log(DAT4.Hz);
+DAT4.ln_frontal = log(DAT4.Frontal);
+DAT4.ln_central = log(DAT4.central);
+DAT4.ln_parietal = log(DAT4.parietal);
+DAT4.ln_occipital = log(DAT4.occipital);
+head(DAT4);
+
+% Export the processed data
+cd '~/GitHub/ReproRehab/data/';
+writetable(DAT4, 'data_PROCESSED_EEG.csv');

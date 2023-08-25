@@ -1,0 +1,61 @@
+% Importing, merging, and relabeling the data
+cd '~/Instrumentation/';
+cd './data/EEG_sub_files/';
+
+% Testing out importing data with 1 subject:
+test = readtable('./oa01_ec.csv');
+head(test);
+
+file_names = dir('*.csv');
+file_names = {file_names.name}';
+
+for i = 1:10
+    disp(i);
+end
+
+for i = 1:length(file_names)
+    disp(file_names{i});
+end
+
+k = 0;
+for i = 1:length(file_names)
+    k = k + 1;
+    disp(file_names{i});
+    disp(k);
+end
+
+% Reading in the individual subjects and merging into a master file
+MASTER = [];
+for i = 1:length(file_names)
+    name = file_names{i};
+    subject = readtable(name);
+    
+    if isempty(MASTER)
+        MASTER = subject;
+        MASTER.file_id = {name};
+    else
+        temp_dataset = subject;
+        temp_dataset.file_id = {name};
+        
+        MASTER = [MASTER; temp_dataset];
+    end
+end
+
+head(MASTER);
+
+% Move the file ID and Hz columns to the front of the dataset
+MASTER = movevars(MASTER, 'file_id', 'Before', 1);
+MASTER(:, 'X') = [];
+
+head(MASTER);
+
+% Break the file id into subject name and the condition
+file_parts = split(MASTER.file_id, '_');
+MASTER.subID = categorical(file_parts(:, 1));
+MASTER.condition = categorical(file_parts(:, 2));
+
+head(MASTER);
+
+% Export the cleaned PSD data
+cd '~/Instrumentation/data/';
+writetable(MASTER, 'MASTER_EO_and_EC_EEG.csv');
