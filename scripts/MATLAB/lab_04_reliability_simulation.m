@@ -75,19 +75,21 @@ SIM_DAT = table(iter', ace', rmse', 'VariableNames', {'iteration', 'ace', 'rmse'
 disp(SIM_DAT);
 
 % Reshape DAT2 for plotting
-DAT2_LONG = stack(DAT2, iter_colnames);
-DAT2_LONG.Properties.VariableNames{'Var1'} = 'iteration';
-DAT2_LONG.Properties.VariableNames{'Val'} = 'y_val';
+DAT2_LONG = stack(DAT2, iter_colnames, 'NewDataVariableName','y_val',...
+    'IndexVariableName','iteration');
+% DAT2_LONG.Properties.VariableNames{'NewDataVariableName'} = 'iteration';
+% DAT2_LONG.Properties.VariableNames{'IndexVariableName'} = 'y_val';
 
 % Sort the data
 DAT2_LONG = sortrows(DAT2_LONG, {'iteration', 'x'});
 
 % Create a color palette for plotting
-cbPalette = {'#000000', '#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7'};
+% cbPalette = {'#000000', '#E69F00', '#56B4E9', '#009E73', '#F0E442', '#0072B2', '#D55E00', '#CC79A7'};
 
 % Plot the data
 figure;
 gscatter(DAT2_LONG.x, DAT2_LONG.y_val, DAT2_LONG.iteration, cbPalette, '.', 10);
 xlabel('X Variable');
 ylabel('Y Variable');
-legend('Location', 'southoutside', 'Orientation', 'horizontal', 'Title', 'Iteration');
+lgd = legend('Location', 'southoutside', 'Orientation', 'horizontal');
+title(lgd, 'Iteration');
