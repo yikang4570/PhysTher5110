@@ -147,8 +147,8 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
                "#999933", "#882255", "#661100", "#6699CC")
 
 ggplot(data=MERGED, aes(x=sample)) +
-  geom_point(aes(y=right_heel_y), shape=21, col="firebrick")+
-  geom_point(aes(y=left_heel_y), shape=21, col="dodgerblue")+
+  geom_point(aes(y=right_heel_y), shape=21, col=cbPalette[2])+
+  geom_point(aes(y=left_heel_y), shape=21, col=cbPalette[3])+
   scale_y_continuous(name = "Heel Position") +
   scale_x_continuous(name = "Time (samples)")+
   theme_bw()+
