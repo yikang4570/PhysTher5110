@@ -3,35 +3,41 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Set the working directory (if needed)
-# import os
-# os.chdir("~/GitHub/PhysTher5110/")
+import os
+os.chdir("C:/Users/kelop/OneDrive/Documents/GitHub/PhysTher5110/")
+os.listdir()
 
-# Read the raw data
-raw_dat = pd.read_csv("./data/gait_example_data/DDH25_0Run01.csv", header=None, sep=',', na_values=[' ', ''])
-
-# Reshape and label the FORCE data
-force_dat = raw_dat.iloc[5:9794, :]
-force_labs = raw_dat.iloc[2:4, :].T
-force_labs.columns = ["level1", "level2"]
-force_labs['level1'].fillna(method='ffill', inplace=True)
-force_labs['level3'] = force_labs['level1'] + "_" + force_labs['level2']
-force_dat.columns = force_labs['level3']
-force_dat.to_csv("./data/gait_example_data/force_data.csv", index=False)
-
-# Reshape and label the MOTION data
-motion_dat = raw_dat.iloc[3:, :]
-motion_labs = raw_dat.iloc[:2, :].T
-motion_labs.columns = ["level1", "level2"]
-motion_labs['level1'].fillna(method='ffill', inplace=True)
-motion_labs['level3'] = motion_labs['level1'] + "_" + motion_labs['level2']
-motion_dat.columns = motion_labs['level3']
-motion_dat.to_csv("./data/gait_example_data/motion_data.csv", index=False)
+# # Read the raw data
+# raw_dat = pd.read_csv("./data/gait_example_data/DDH25_0Run01.csv", sep=",",
+# header=None)
+# 
+# # Reshape and label the FORCE data
+# force_dat = raw_dat.iloc[5:9794, :]
+# force_labs = raw_dat.iloc[2:4, :].T
+# force_labs.columns = ["level1", "level2"]
+# force_labs['level1'].fillna(method='ffill', inplace=True)
+# force_labs['level3'] = force_labs['level1'] + "_" + force_labs['level2']
+# force_dat.columns = force_labs['level3']
+# force_dat.to_csv("./data/gait_example_data/force_data.csv", index=False)
+# 
+# # Reshape and label the MOTION data
+# motion_dat = raw_dat.iloc[3:, :]
+# motion_labs = raw_dat.iloc[:2, :].T
+# motion_labs.columns = ["level1", "level2"]
+# motion_labs['level1'].fillna(method='ffill', inplace=True)
+# motion_labs['level3'] = motion_labs['level1'] + "_" + motion_labs['level2']
+# motion_dat.columns = motion_labs['level3']
+# motion_dat.to_csv("./data/gait_example_data/motion_data.csv", index=False)
+# 
 
 # Select and rename variables
+force_dat = pd.read_csv("./data/gait_example_data/force_data.csv", sep=",")
+
 force_dat = force_dat[['Treadmill Left - Force_Fx', 'Treadmill Left - Force_Fy', 
-                       'Treadmill Left - CoP_Cx', 'Treadmill Left - CoP_Cy']]
+                        'Treadmill Left - CoP_Cx', 'Treadmill Left - CoP_Cy']]
 force_dat.columns = ['force_x', 'force_y', 'cop_x', 'cop_y']
-force_dat['sample'] = force_dat.index - 5
+force_dat['sample'] = force_dat.index
+
 
 # Plot FORCE data
 plt.figure(figsize=(10, 6))
@@ -41,13 +47,17 @@ plt.plot(force_dat['cop_y'], linestyle='-', label='CoP Y')
 plt.plot(force_dat['cop_x'], linestyle='-', label='CoP X')
 plt.xlabel('Sample')
 plt.ylabel('Value')
-plt.legend()
+plt.legend(loc="best")
 plt.show()
 
 # Reshape and rename MOTION data
+motion_dat = pd.read_csv("./data/gait_example_data/motion_data.csv", sep=",")
+
 motion_dat = motion_dat[['DDH25:RICAL_X', 'DDH25:RICAL_Y', 'DDH25:LICAL_X', 'DDH25:LICAL_Y']]
 motion_dat.columns = ['right_heel_x', 'right_heel_y', 'left_heel_x', 'left_heel_y']
-motion_dat['sample'] = motion_dat.index - 3
+motion_dat['sample'] = motion_dat.index
+
+
 
 # Plot MOTION data
 plt.figure(figsize=(10, 6))
@@ -57,7 +67,7 @@ plt.plot(motion_dat['left_heel_x'], linestyle='-', label='Left Heel X')
 plt.plot(motion_dat['left_heel_y'], linestyle='-', label='Left Heel Y')
 plt.xlabel('Sample')
 plt.ylabel('Value')
-plt.legend()
+plt.legend(loc='best')
 plt.show()
 
 # Downsample the FORCE data
