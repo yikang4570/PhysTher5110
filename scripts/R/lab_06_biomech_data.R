@@ -70,36 +70,52 @@ write.csv(MOTION_DAT, "./data/gait_example_data/motion_data.csv")
 # Selecting and renaming only the variables we want ----------------------------
 head(FORCE_DAT)
 FORCE_DAT <- FORCE_DAT %>% select(`Treadmill Left - Force_Fx`,
-                     `Treadmill Left - Force_Fy`, 
+                     `Treadmill Left - Force_Fy`,
+                     `Treadmill Left - Force_Fz`,
                      `Treadmill Left - CoP_Cx`, 
-                     `Treadmill Left - CoP_Cy`) %>%
+                     `Treadmill Left - CoP_Cy`,
+                     `Treadmill Left - CoP_Cz`) %>%
   rename(force_x = `Treadmill Left - Force_Fx`,
          force_y = `Treadmill Left - Force_Fy`, 
+         force_z = `Treadmill Left - Force_Fz`, 
          cop_x = `Treadmill Left - CoP_Cx`, 
-         cop_y = `Treadmill Left - CoP_Cy`) %>%
+         cop_y = `Treadmill Left - CoP_Cy`,
+         cop_z = `Treadmill Left - CoP_Cz`) %>%
   rownames_to_column(var="sample") %>%
   mutate(sample = as.numeric(sample)-5) # To start the samples at 1
 
 plot(FORCE_DAT$force_y, type="l")
 plot(FORCE_DAT$force_x, type="l")
+plot(FORCE_DAT$force_z, type="l")
+
 plot(FORCE_DAT$cop_y, type="l")
 plot(FORCE_DAT$cop_x, type="l")
+plot(FORCE_DAT$cop_z, type="l")
 
 
 head(MOTION_DAT)
-MOTION_DAT <- MOTION_DAT %>% select(`DDH25:RICAL_X`, `DDH25:RICAL_Y`,
-                      `DDH25:LICAL_X`, `DDH25:LICAL_Y`) %>%
+MOTION_DAT <- MOTION_DAT %>% select(`DDH25:RICAL_X`, 
+                                    `DDH25:RICAL_Y`,
+                                    `DDH25:RICAL_Z`, 
+                                    `DDH25:LICAL_X`, 
+                                    `DDH25:LICAL_Y`,
+                                    `DDH25:LICAL_Z`) %>%
   rename(right_heel_x = `DDH25:RICAL_X`, 
          right_heel_y = `DDH25:RICAL_Y`,
+         right_heel_z = `DDH25:RICAL_Z`,
          left_heel_x = `DDH25:LICAL_X`, 
-         left_heel_y = `DDH25:LICAL_Y`) %>%
+         left_heel_y = `DDH25:LICAL_Y`,
+         left_heel_z = `DDH25:LICAL_Z`) %>%
   rownames_to_column(var="sample") %>%
   mutate(sample = as.numeric(sample)-3) # To start the samples at 1
 
 plot(MOTION_DAT$right_heel_x, type="l")
 plot(MOTION_DAT$right_heel_y, type="l")
+plot(MOTION_DAT$right_heel_z, type="l")
+
 plot(MOTION_DAT$left_heel_x, type="l")
 plot(MOTION_DAT$left_heel_y, type="l")
+plot(MOTION_DAT$left_heel_z, type="l")
 
 
 # Down sampling the data to align FORCE and MOTION -----------------------------
@@ -123,8 +139,10 @@ nrow(MOTION_DAT)
 
 MERGED <- cbind(MOTION_DAT,
                 FORCE_DAT_DS %>% select(-sample)) %>%
-  mutate_at(c("right_heel_x", "right_heel_y", "left_heel_x",
-              "left_heel_y", "force_x", "force_y", "cop_x", "cop_y"), 
+  mutate_at(c("right_heel_x", "right_heel_y", "right_heel_z",
+              "left_heel_x", "left_heel_y", "left_heel_z", 
+              "force_x", "force_y", "force_z", 
+              "cop_x", "cop_y", "cop_z"), 
             as.numeric)
 head(MERGED)
 
@@ -138,7 +156,7 @@ plot(x=MERGED$sample, y=MERGED$left_heel_y)
 # Relationship between left and right heel
 plot(x=MERGED$left_heel_y, y=MERGED$right_heel_y)
 # Why does force look like a figure-8 compared to right heel?
-plot(y=MERGED$force_y, x=MERGED$right_heel_y)
+plot(y=MERGED$force_z, x=MERGED$right_heel_z)
 
 
 # Visualizing left and right heel position at the same time --------------------
@@ -146,10 +164,11 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7",
                "#999933", "#882255", "#661100", "#6699CC")
 
+head(MERGED)
 ggplot(data=MERGED, aes(x=sample)) +
-  geom_point(aes(y=right_heel_y), shape=21, col=cbPalette[2])+
-  geom_point(aes(y=left_heel_y), shape=21, col=cbPalette[3])+
-  scale_y_continuous(name = "Heel Position") +
+  geom_point(aes(y=right_heel_z), shape=21, col=cbPalette[2])+
+  geom_point(aes(y=left_heel_z), shape=21, col=cbPalette[3])+
+  scale_y_continuous(name = "Force") +
   scale_x_continuous(name = "Time (samples)")+
   theme_bw()+
   scale_fill_manual(values=cbPalette)+
