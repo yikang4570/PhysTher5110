@@ -1,20 +1,31 @@
 import pandas as pd
+import numpy as np
+from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
+
+os.chdir("C:/Users/kelop/OneDrive/Documents/GitHub/PhysTher5110/")
+os.listdir()
+
+os.listdir("./data")
+
 
 # 1.0 Plotting Discrete Data
 # Load the data
-DAT1 = pd.read_csv("./data_ANSCOMBE.csv")
+DAT1 = pd.read_csv("./data/data_ANSCOMBE.csv")
 print(DAT1.head())
 
 # Regression Coefficients
-COEFS = DAT1.groupby('group').apply(lambda group_df: group_df.agg({
-    'xVal': 'mean',
-    'yVal': 'mean',
-    'xVal': 'std',
-    'yVal': 'std'
-})).reset_index()
-COEFS.columns = ['group', 'MeanX', 'MeanY', 'SDX', 'SDY']
+COEFS = DAT1.groupby('group').agg(
+    Intercept=('yVal', lambda x: stats.linregress(x, DAT1.loc[x.index, 'xVal']).intercept),
+    Slope=('yVal', lambda x: stats.linregress(x, DAT1.loc[x.index, 'xVal']).slope),
+    MeanY=('yVal', 'mean'),
+    SDY=('yVal', 'std'),
+    MeanX=('xVal', 'mean'),
+    SDX=('xVal', 'std')
+).reset_index()
+
 print(COEFS)
 
 # Visualizing All the Data
