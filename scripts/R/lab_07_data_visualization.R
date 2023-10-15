@@ -1,4 +1,4 @@
-library(ggplot2); library(tidyverse);
+library(tidyverse);
 # By treating this workshop as an R project, we can use relative file paths that
 # allow you to open the data anywhere on any computer, provided you have downloaded 
 # the whole workshop folder.
@@ -7,7 +7,7 @@ getwd()
 
 ## 1.0 Plotting Discrete Data --------------------------------------------------
 # Anscombe's Quartet and the Importance of Checking Assumptions
-DAT1 <- read.csv("./data_ANSCOMBE.csv", header = TRUE, sep = ",")
+DAT1 <- read.csv("./data/data_ANSCOMBE.csv", header = TRUE, sep = ",")
 head(DAT1)
 
 
@@ -43,7 +43,7 @@ ggplot(DAT1, aes(x = xVal, y = yVal)) +
 
 
 ## Disctrete Categorical Data
-DAT2 <- read.csv("./data_FINAL_RATINGS.csv", header = TRUE, sep = ",")
+DAT2 <- read.csv("./data/data_FINAL_RATINGS.csv", header = TRUE, sep = ",")
 head(DAT2)
 
 
@@ -60,6 +60,8 @@ ggplot(MEANS, aes(x = Elevation, y = ave_Effort)) +
   geom_bar(aes(fill=Elevation), stat="identity", width = 0.5)+
   facet_wrap(~Speed) +
   scale_y_continuous(name = "Effort (%)", limits = c(0,100)) +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9"))+
+  scale_color_manual(values=c("#E69F00", "#56B4E9"))+ 
   #scale_fill_manual(values=c("#E69F00", "#56B4E9"))+
   theme(axis.text=element_text(size=16, color="black"), 
         axis.title=element_text(size=16, face="bold"),
