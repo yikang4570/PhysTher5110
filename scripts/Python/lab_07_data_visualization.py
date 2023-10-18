@@ -1,7 +1,9 @@
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from scipy import stats
-# import r-ggplot2 as gg
+import plotnine as pn
 import os
 
 os.chdir("C:/Users/kelop/OneDrive/Documents/GitHub/PhysTher5110/")
@@ -55,7 +57,7 @@ plt.clf()
 
 # Means with Standard errors
 e = sns.FacetGrid(data=DAT2, col='Speed', sharey=False)
-e.map(sns.barplot, 'Elevation', 'ave_Effort', palette='Set1', errorbar="sd", errcolor="k")
+e.map(sns.barplot, 'Elevation', 'Effort', palette='Set1', errorbar="sd", errcolor="k")
 e.set_axis_labels("Elevation", "Effort (%)")
 e.set_titles("Speed {col_name}")
 e.set(ylim=(0, 100))
@@ -82,6 +84,19 @@ g.set_xlabels(fontsize=16, fontweight='bold')
 g.set_ylabels(fontsize=16, fontweight='bold')
 
 plt.show()
+plt.clf()
+
+
+
+# Boxplots
+(ggplot(DAT2, aes(x = "Elevation", y = "Effort")) +
+  geom_point(aes(fill="Elevation"))+
+  geom_boxplot()+
+  facet_wrap("~Speed")
+        )
+        
+
+
 
 
 
