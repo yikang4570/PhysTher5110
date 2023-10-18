@@ -88,16 +88,36 @@ plt.clf()
 
 
 
-# Boxplots
-(ggplot(DAT2, aes(x = "Elevation", y = "Effort")) +
-  geom_point(aes(fill="Elevation"))+
-  geom_boxplot()+
-  facet_wrap("~Speed")
-        )
-        
+# Box Plots
+f = sns.stripplot(data=DAT2, x="Elevation", y="Effort", hue="Speed", jitter=0.2, size=5, dodge=0.4)
+f = sns.boxplot(data=DAT2, x="Elevation", y="Effort", hue="Speed", boxprops=dict(alpha=.3))
+
+# add title
+plt.title("Boxplots with jitter", loc="left")
+
+# show the graph
+plt.show()
+ 
+ 
+ 
+ 
+ # Connecting the dots...
+DAT3 = DAT2.groupby(['Elevation', 'Speed'])['Effort'].mean().reset_index()
 
 
+custom_colors = ["#E69F00", "#56B4E9"]
+
+# Create a 2x1 grid of scatterplots
+g = sns.FacetGrid(data=DAT2, col="Speed", hue="Speed", height=5, aspect=1.5)
+
+# Define the scatterplot on each facet
+g.map(sns.scatterplot, "Elevation", "Effort")
+g.map(sns.lineplot, "Elevation", "Effort", color='gray', alpha=0.5, lw=1)
 
 
+# Add labels and titles
+g.set_axis_labels("Elevation", "Effort (%)")
+g.set_titles(col_template="{col_name} Speed")
 
-
+# Show the grid of scatterplots
+plt.show()
