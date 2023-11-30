@@ -3,38 +3,123 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from skimage import io, color
 
-# Load the image
-image_path = "quokka.jpg"
-quokka_image = io.imread(image_path)
+import os
 
-# Convert the image to grayscale
-grayscale_quokka = color.rgb2gray(quokka_image)
+# Set the working directory
+working_directory = r"C:\Users\kelop\OneDrive\Documents"
+os.chdir(working_directory)
 
-# Flatten the image to a 1D array
-flattened_quokka = grayscale_quokka.flatten()
-
-# Perform PCA
-n_components_list = [1, 20, 50, 100]
-for n_components in n_components_list:
-    pca = PCA(n_components=n_components)
-    reduced_quokka = pca.fit_transform(flattened_quokka.reshape(1, -1))
-    reconstructed_quokka = pca.inverse_transform(reduced_quokka)
-
-    # Reshape the reconstructed image to its original shape
-    reconstructed_quokka = reconstructed_quokka.reshape(grayscale_quokka.shape)
-
-    # Display the original and reconstructed images
-    plt.figure(figsize=(8, 4))
+def pca_comparison(image_path):
+    # Load the image
+    quokka = io.imread(image_path)
     
-    plt.subplot(1, 2, 1)
-    plt.imshow(grayscale_quokka, cmap='gray')
+    # Display the original image
+    plt.figure()
+    plt.imshow(quokka)
     plt.title('Original Image')
-
-    plt.subplot(1, 2, 2)
-    plt.imshow(reconstructed_quokka, cmap='gray')
-    plt.title(f'Reconstructed Image ({n_components} PCs)')
-
     plt.show()
 
+    # Convert to grayscale
+    quokka_bw = color.rgb2gray(quokka)
+    
+    # Display the grayscale image
+    plt.figure()
+    plt.imshow(quokka_bw, cmap='gray')
+    plt.title('Grayscale Image')
+    plt.show()
 
+    # Get image dimensions
+    M, N = quokka_bw.shape
+
+    # Subtract mean for each dimension
+    data_zero_mean = quokka_bw - np.mean(quokka_bw)
+
+    # Calculate the covariance matrix
+    covariance = (1 / (N - 1)) * np.dot(data_zero_mean, data_zero_mean.T)
+
+    # Find eigenvectors and eigenvalues
+    Vpca, PCpca = np.linalg.eig(covariance)
+
+    # Take the real part of eigenvalues
+    Vpca = np.real(Vpca)
+
+    # Sort variances in decreasing order
+    rindices = np.argsort(Vpca)[::-1]
+    Vpca = Vpca[rindices]
+    PCpca = PCpca[:, rindices]
+
+    # Project the original dataset
+    signals = np.dot(PCpca.T, data_zero_mean)
+
+    # Recreate the original signal
+    org_pca = np.dot(PCpca, signals) + np.mean(quokka_bw)
+
+    # Normalize pixel values for display
+    org_pca_display = np.abs(org_pca) / np.max(np.abs(org_pca))
+
+    # Display the reconstructed image using the first PC alone
+    plt.figure()
+    plt.imshow(org_pca_display, cmap='gray')
+    plt.title('Reconstructed Image using First PC')
+    plt.show()
+
+    # Perform PCA using singular value decomposition (SVD)
+    Y = data_zero_mean.T / np.sqrt(N - 1)
+
+    # Run SVD
+    _, S, PCsvd = svd(Y)
+
+    # Calculate variances
+    Vsvd = S**2
+
+    # Project the original dataset
+    signals_svd = np.dot(PCsvd.T, data_zero_mean)
+
+    # Recreate the original signal
+    org_svd = np.dot(PCsvd, signals_svd) + np.mean(quokka_bw)
+
+    # Normalize pixel values for display
+    org_svd_display = np.abs(org_svd) / np.max(np.abs(org_svd))
+
+    # Display the reconstructed image using the first 10 PCs from SVD
+    plt.figure()
+    plt.imshow(org_svd_display, cmap='gray')
+    plt.title('Reconstructed Image using First 10 PCs from SVD')
+    plt.show()
+
+    # Reconstruct the image using the first 10 PCs from PCA
+    org_pca_10 = np.dot(PCpca[:, :10], signals[:10, :]) + np.mean(quokka_bw)
+
+    # Normalize pixel values for display
+    org_pca_10_display = np.abs(org_pca_10) / np.max(np.abs(org_pca_10))
+
+    # Display the reconstructed image using the first 10 PCs from PCA
+    plt.figure()
+    plt.imshow(org_pca_10_display, cmap='gray')
+    plt.title('Reconstructed Image using First 10 PCs from PCA')
+    plt.show()
+
+    # Use NumPy's built-in PCA function
+    _, _, Vpca_builtin = np.linalg.svd(data_zero_mean.T / np.sqrt(N - 1))
+    PCpca_builtin = Vpca_builtin.T
+
+    # Project the original dataset using NumPy's PCA result
+    signals_builtin = np.dot(PCpca_builtin.T, data_zero_mean)
+
+    # Recreate the original signal using NumPy's PCA result
+    org_pca_builtin = np.dot(PCpca_builtin, signals_builtin) + np.mean(quokka_bw)
+
+    # Normalize pixel values for display
+    org_pca_builtin_display = np.abs(org_pca_builtin) / np.max(np.abs(org_pca_builtin))
+
+    # Display the reconstructed image using NumPy's PCA
+    plt.figure()
+    plt.imshow(org_pca_builtin_display, cmap='gray')
+    plt.title('Reconstructed Image using NumPy\'s PCA')
+    plt.show()
+
+    return PCpca, Vpca, PCsvd, Vsvd
+
+# Example usage
+PCpca, Vpca, PCsvd, Vsvd = pca_comparison('quokka.jpg')
     
