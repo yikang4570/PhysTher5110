@@ -32,7 +32,7 @@ def pca_comparison(image_path):
     M, N = quokka_bw.shape
 
     # Subtract mean for each dimension
-    data_zero_mean = quokka_bw - np.mean(quokka_bw)
+    data_zero_mean = quokka_bw - quokka_bw.mean(0)
 
     # Calculate the covariance matrix
     covariance = (1 / (N - 1)) * np.dot(data_zero_mean, data_zero_mean.T)
@@ -52,10 +52,10 @@ def pca_comparison(image_path):
     signals = np.dot(PCpca.T, data_zero_mean)
 
     # Recreate the original signal
-    org_pca = np.dot(PCpca, signals) + np.mean(quokka_bw)
+    org_pca1 = np.dot(PCpca[:, :1], signals[:1, :]) + quokka_bw.mean(0)
 
     # Normalize pixel values for display
-    org_pca_display = np.abs(org_pca) / np.max(np.abs(org_pca))
+    org_pca_display = np.abs(org_pca1) / np.max(np.abs(org_pca1))
 
     # Display the reconstructed image using the first PC alone
     plt.figure()
@@ -76,7 +76,7 @@ def pca_comparison(image_path):
     signals_svd = np.dot(PCsvd.T, data_zero_mean)
 
     # Recreate the original signal
-    org_svd = np.dot(PCsvd, signals_svd) + np.mean(quokka_bw)
+    org_svd = np.dot(PCsvd, signals_svd) + quokka_bw.mean(0)
 
     # Normalize pixel values for display
     org_svd_display = np.abs(org_svd) / np.max(np.abs(org_svd))
@@ -88,7 +88,7 @@ def pca_comparison(image_path):
     plt.show()
 
     # Reconstruct the image using the first 10 PCs from PCA
-    org_pca_10 = np.dot(PCpca[:, :10], signals[:10, :]) + np.mean(quokka_bw)
+    org_pca_10 = np.dot(PCpca[:, :10], signals[:10, :]) + quokka_bw.mean(0)
 
     # Normalize pixel values for display
     org_pca_10_display = np.abs(org_pca_10) / np.max(np.abs(org_pca_10))
@@ -107,7 +107,7 @@ def pca_comparison(image_path):
     signals_builtin = np.dot(PCpca_builtin.T, data_zero_mean)
 
     # Recreate the original signal using NumPy's PCA result
-    org_pca_builtin = np.dot(PCpca_builtin, signals_builtin) + np.mean(quokka_bw)
+    org_pca_builtin = np.dot(PCpca_builtin[:, :10], signals_builtin[:10, :]) + quokka_bw.mean(0)
 
     # Normalize pixel values for display
     org_pca_builtin_display = np.abs(org_pca_builtin) / np.max(np.abs(org_pca_builtin))
