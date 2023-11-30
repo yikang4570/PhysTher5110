@@ -1,68 +1,111 @@
-# Load required libraries
 library(jpeg)
 library(pracma)
-library(imager)
-library(grid)
 
-# Read the image
-quokka <- readJPEG("quokka.jpg")
+# Set the working directory
+working_directory <- "C:/Users/kelop/OneDrive/Documents"
+setwd(working_directory)
 
-# Convert the image to grayscale using imager::grayscale
-quokkaBW <- imager::grayscale(quokka)
-
-# Flatten the image matrix into a vector
-quokkaVector <- as.vector(quokkaBW)
-
-# Perform PCA
-pcaResult <- prcomp(t(quokkaVector), center = TRUE, scale = FALSE)
-
-# Function to reconstruct the image using a specified number of principal components
-reconstructImage <- function(pcaResult, numComponents) {
-  # Extract the first 'numComponents' principal components
-  components <- pcaResult$rotation[, 1:numComponents]
+pca_comparison <- function(image_path) {
+  # Load the image
+  quokka <- readJPEG(image_path)
   
-  # Project the original data onto the selected components
-  projectedData <- t(components) %*% quokkaVector
+  # Display the original image
+  image(quokka, axes = FALSE)
+  title("Original Image")
   
-  # Reconstruct the image using the selected components
-  reconstructedImageVector <- components %*% projectedData
-  reconstructedImageMatrix <- matrix(reconstructedImageVector, nrow = nrow(quokkaBW), ncol = ncol(quokkaBW), byrow = TRUE)
+  # Convert to grayscale
+  quokka_bw <- rgb2gray(quokka)
   
-  # Return the reconstructed image matrix
-  return(reconstructedImageMatrix)
+  # Display the grayscale image
+  image(quokka_bw, col = gray.colors(256), axes = FALSE)
+  title("Grayscale Image")
+  
+  # Get image dimensions
+  M <- nrow(quokka_bw)
+  N <- ncol(quokka_bw)
+  
+  # Subtract mean for each dimension
+  data_zero_mean <- quokka_bw - colMeans(quokka_bw)
+  
+  # Calculate the covariance matrix
+  covariance <- (1 / (N - 1)) * (data_zero_mean %*% t(data_zero_mean))
+  
+  # Find eigenvectors and eigenvalues
+  eig_result <- eigen(covariance)
+  Vpca <- Re(eig_result$values)  # Take the real part of eigenvalues
+  PCpca <- eig_result$vectors
+  
+  # Sort variances in decreasing order
+  rindices <- order(Vpca, decreasing = TRUE)
+  Vpca <- Vpca[rindices]
+  PCpca <- PCpca[, rindices]
+  
+  # Project the original dataset
+  signals <- t(PCpca) %*% data_zero_mean
+  
+  # Recreate the original signal
+  org_pca1 <- PCpca[, 1] %*% signals[1, ] + colMeans(quokka_bw)
+  
+  # Normalize pixel values for display
+  org_pca_display <- abs(org_pca1) / max(abs(org_pca1))
+  
+  # Display the reconstructed image using the first PC alone
+  image(org_pca_display, col = gray.colors(256), axes = FALSE)
+  title("Reconstructed Image using First PC")
+  
+  # Perform PCA using singular value decomposition (SVD)
+  Y <- t(data_zero_mean) / sqrt(N - 1)
+  
+  # Run SVD
+  svd_result <- svd(Y)
+  S <- svd_result$d
+  PCsvd <- svd_result$u
+  
+  # Calculate variances
+  Vsvd <- S^2
+  
+  # Project the original dataset
+  signals_svd <- t(PCsvd) %*% data_zero_mean
+  
+  # Recreate the original signal
+  org_svd <- PCsvd %*% signals_svd + colMeans(quokka_bw)
+  
+  # Normalize pixel values for display
+  org_svd_display <- abs(org_svd) / max(abs(org_svd))
+  
+  # Display the reconstructed image using the first 10 PCs from SVD
+  image(org_svd_display, col = gray.colors(256), axes = FALSE)
+  title("Reconstructed Image using First 10 PCs from SVD")
+  
+  # Reconstruct the image using the first 10 PCs from PCA
+  org_pca_10 <- PCpca[, 1:10] %*% signals[1:10, ] + colMeans(quokka_bw)
+  
+  # Normalize pixel values for display
+  org_pca_10_display <- abs(org_pca_10) / max(abs(org_pca_10))
+  
+  # Display the reconstructed image using the first 10 PCs from PCA
+  image(org_pca_10_display, col = gray.colors(256), axes = FALSE)
+  title("Reconstructed Image using First 10 PCs from PCA")
+  
+  # Use R's built-in PCA function
+  pca_builtin <- prcomp(t(data_zero_mean) / sqrt(N - 1))
+  PCpca_builtin <- pca_builtin$rotation
+  
+  # Project the original dataset using R's PCA result
+  signals_builtin <- t(PCpca_builtin) %*% data_zero_mean
+  
+  # Recreate the original signal using R's PCA result
+  org_pca_builtin <- PCpca_builtin[, 1:10] %*% signals_builtin[1:10, ] + colMeans(quokka_bw)
+  
+  # Normalize pixel values for display
+  org_pca_builtin_display <- abs(org_pca_builtin) / max(abs(org_pca_builtin))
+  
+  # Display the reconstructed image using R's PCA
+  image(org_pca_builtin_display, col = gray.colors(256), axes = FALSE)
+  title("Reconstructed Image using R's PCA")
+  
+  return(list(PCpca = PCpca, Vpca = Vpca, PCsvd = PCsvd, Vsvd = Vsvd))
 }
 
-# Function to plot the reconstructed image
-plotReconstructedImage <- function(reconstructedImage, numComponents) {
-  grid.newpage()
-  grid.raster(reconstructedImage, interpolate = FALSE, width = 1)
-  grid.text(label = paste("Components:", numComponents), x = 0.5, y = 0.95)
-}
-
-# Allow the user to interactively reconstruct the image using different numbers of components
-numComponents <- NULL
-
-while (TRUE) {
-  # Get user input for the number of principal components
-  numComponents <- as.integer(readline("Enter the number of principal components (0 to exit): "))
-  
-  # Check if the user wants to exit
-  if (numComponents == 0) {
-    break
-  }
-  
-  # Check if the input is valid
-  if (numComponents < 0 || numComponents > ncol(quokkaVector)) {
-    cat("Invalid input. Please enter a valid number of principal components.\n")
-    next
-  }
-  
-  # Reconstruct the image using the specified number of components
-  reconstructedImage <- reconstructImage(pcaResult, numComponents)
-  
-  # Plot the reconstructed image
-  plotReconstructedImage(reconstructedImage, numComponents)
-}
-
-# Close any open devices
-dev.off()
+# Example usage
+result <- pca_comparison("quokka.jpg")
