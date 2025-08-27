@@ -17,3 +17,6 @@ I am a 2nd year phD student in Dr. Zellers' Lab doing tendon related research.
 - Topic B: data management 
 - Topic C: coding skills
 
+## Favorite Open Science Tools
+- Tool 1
+- Tool 2
