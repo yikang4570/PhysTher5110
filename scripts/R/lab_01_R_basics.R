@@ -1,5 +1,8 @@
+#Yi Kang 
+#09/03/25
+
 # assigning values to and basic functions ----
-x = 2
+x = 2 # this is a comment
 x = x + 3 
 
 x*3
@@ -140,4 +143,75 @@ for(i in seq(1:3)){
   print("Hello!")
 }
 
+
+# In class assignment ----------------------------------------------------------------
+#2. Create a vector A that has four values 1, 1, 1, 1. 
+## 2. Create A = c(1,1,1,1)
+A <- rep(1, 4) ##additional way to assign the vector
+A
+A <- c(1,1,1,1)
+A
+
+## 3. Create a vector B that have two values 2, 3.
+B <- c(2, 3)
+B
+
+## 4. Multiply vectors A and B together. What is the result? 
+A_times_B <- A*B
+A_times_B
+# [1] 2 3 2 3 # Recycling rule applies: result length is 4
+
+## 5. Write a for-loop that counts from 1 to 10 and outputs the current value at every step. 
+for (i in 1:10) {
+  print(i)
+}
+
+## 6. Write a for-loop that counts from 1 to 10 and outputs the sum of all previous values up to that point at every step.
+running_sum <- 0
+for (i in 1:10) {
+  running_sum <- running_sum + i
+  print(running_sum)
+}
+
+#We can also use 
+#for (i in seq(1:10)){
+#running_sum <- running_sum + i
+#print(running_sum)
+#}
+
+## 7. Create a data frame with 40 simulated participants, 20 males and 20 females. Simulate normally distributed heights for each of these groups using the values given in the Lab 01 script file. How can you most efficiently calculate the mean and the standard deviation for the males and females? (Hint. We did not directly show you how to do this. This will mostly be an exercise in creative thinking, searching the web, and working together!)
+set.seed(1204)  # for reproducibility
+#generate simulated data
+sex <- factor(c(rep("male", 20), rep("female", 20))) #rep=repeat
+height <- c(rnorm(20, mean=67, sd=2.5), rnorm(20, 64, 2.2)) #number of observation, mean, sd
+
+DAT1 <- data.frame(sex, height)
+DAT1
+
+plot(height~sex, data=DAT1)
+
+#given the dataset DAT1, calculate the mean (sd) for male and female 
+#option 1
+library(dplyr)
+a<- DAT1 %>%
+  group_by(sex) %>%
+  summarise(
+    mean_height = mean(height),
+    sd_height   = sd(height),
+    .groups = "drop"
+  )
+a
+
+# option 2
+tapply(DAT1$height, DAT1$sex, mean) #tapply(X, INDEX/factor, FUN)
+tapply(DAT1$height, DAT1$sex, sd) #Apply a function to subsets of a vector, defined by one or more factor(s) (grouping variables).
+#different apply function
+# Purpose: Apply a function to each element of a list or vector and simplify the result into a vector or matrix if possible.
+# sapply(list(1:5, 6:10), mean) - Apply a function across a set of elements without grouping.
+
+#option 3
+mean(DAT1$height[DAT1$sex == "male"]) # [] = filter 
+sd(DAT1$height[DAT1$sex == "male"])
+
+# 8. Create a plot that shows height as a function of sex for your 40 simulated participants. Insert your plot in the document below. 
 
