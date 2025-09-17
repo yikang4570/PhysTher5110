@@ -2,14 +2,13 @@ library(tidyverse) # data formatting and graphing tools
 
 
 # 2.0. Wrangling Data 
-setwd("~/Instrumentation/")
+# setwd("~/Instrumentation/")
 list.files()
-list.files("./data/")
+#list.files("./data/")
 
-DATA <- read.csv("./data/MASTER_EO_and_EC_EEG.csv",
+DATA <- read.csv("MASTER_EO_and_EC_EEG.csv",
                     header=TRUE, 
                     stringsAsFactors = TRUE)
-
 
 # selecting specific columns
 head(DATA)
