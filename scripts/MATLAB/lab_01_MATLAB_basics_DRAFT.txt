@@ -7,10 +7,17 @@ y = 2;
 x / y;
 
 z = 'word';
-x * z;
+x * z; 
+% it performs element-wise multiplication using the ASCII values of the characters. Here's how it works:
+%'WORDS' is a character array:
+%'W' → ASCII 87
+%'O' → ASCII 79
+%'R' → ASCII 82
+%'D' → ASCII 68
+%'S' → ASCII 83
 
-x < 2;
-x > 2;
+x < 2; # 0 = False
+x > 2; # 1= True
 
 strcmp(z, 'word'); % Returns 1 if true (equal), 0 otherwise
 strcmp(z, 'word') < 2; % Similar to (z < 2) in R, but not recommended in MATLAB
