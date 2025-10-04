@@ -118,3 +118,23 @@ plot_all_freq <- ggplot(DAT4_long, aes(x = ln_Hz, y = log_power)) +
 
 # Print the plot
 print(plot_all_freq)
+
+# filter the Hz < = 30 
+DAT4_long_filtered <- DAT4_long %>% filter(Hz <= 30) # filter the data
+plot_filtered <- ggplot(DAT4_long_filtered, aes(x = ln_Hz, y = log_power)) +
+  geom_point(alpha = 0.5, color = "#2c7bb6") +
+  geom_smooth(method = "lm", se = FALSE, color = "#d7191c", linetype = "dashed") +
+  facet_wrap(~ region, scales = "free_y") +
+  labs(
+    title = "Log-transformed Power vs. Frequency by Brain Region (Hz ≤ 30)",
+    x = "Log-transformed Frequency (Hz)",
+    y = "Log-transformed Power"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    strip.background = element_rect(fill = "grey90", color = NA),
+    strip.text = element_text(face = "bold")
+  )
+# Print the plot
+print(plot_filtered)

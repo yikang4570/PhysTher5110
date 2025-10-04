@@ -1,23 +1,21 @@
 library(tidyverse)
 
-setwd("~/GitHub/PhysTher5110/")
+getwd()
+setwd("/Users/yikang/Documents/GitHub/PhysTher5110/")
 list.files("./data/gait_example_data")
-
-RAW_DAT <- read.csv("./data/gait_example_data/DDH25_0Run01.csv", header=FALSE,
-                    sep=c(","), na.strings=c(" ", ""))
 
 
 # Reshaping/labeling the FORCE data --------------------------------------------
 RAW_DAT <- read.csv("./data/gait_example_data/DDH25_0Run01.csv", header=FALSE,
                     sep=c(","), na.strings=c(" ", ""))
 
-FORCE_DAT <- RAW_DAT[6:9795,]
+FORCE_DAT <- RAW_DAT[6:9795,] # from row 6 to row 9795, all column selected
 head(FORCE_DAT)
 
 FORCE_LABS <- RAW_DAT[3:4,]
 FORCE_LABS
 
-FORCE_LABS <- data.frame(t(FORCE_LABS))
+FORCE_LABS <- data.frame(t(FORCE_LABS)) #flips the object's dimensions, swapping its rows and columns
 FORCE_LABS
 
 colnames(FORCE_LABS) <- c("level1", "level2")
@@ -128,6 +126,9 @@ plot(MOTION_DAT$left_heel_z, type="l")
 # this is by taking every tenth force observation:
 
 FORCE_DAT_DS <- FORCE_DAT[c(seq(from=1, to=nrow(FORCE_DAT), by=10)),]
+#generates a sequence of row numbers to select; start at first row
+#Stop at the total number of rows in FORCE_DAT
+
 
 
 # The two datasets are now aligned in time and can be merged
