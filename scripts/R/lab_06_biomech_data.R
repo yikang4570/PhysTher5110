@@ -182,8 +182,89 @@ ggplot(data=MERGED, aes(x=sample)) +
         legend.title = element_text(size=10, face="bold"),
         legend.text = element_text(size=10),
         legend.position = "bottom")
-  
 
+# function to compute step
+head(MERGED)
+#set up a lagged function 
+tail(c(NA, MERGED$right_heel_z[-length(MERGED$right_heel_z)]))
 
+#use lag function 
+MERGED$right_heel_z_lagged <- lag(MERGED$right_heel_z,1)
+MERGED$left_heel_z_lagged <- lag(MERGED$left_heel_z,1)
 
+MERGED$right_z_diff <- MERGED$right_heel_z -  MERGED$right_heel_z_lagged
+MERGED$left_z_diff <- MERGED$left_heel_z -  MERGED$left_heel_z_lagged
+
+# Using lag to find peak point
+#the number 
+sum(MERGED$right_z_diff < 0.01, na.rm = T)
+346/979
+
+# It seems impossible 
+# set up different threshold 
+sum(MERGED$right_z_diff < 0.1 & MERGED$right_z_diff > -0.1, na.rm = T)
+16/979
+# divide by 2 - given one is up and the other is down
+
+#if multiple points @ 0 , how to determine if that is true
+MERGED$right_z_diff < 0.1 & MERGED$right_z_diff > -0.1
+#such as T F T
+#filter / find 
+#subsetting the data frame MERGED to include only the rows where the variable right_z_diff is between −0.1 and +0.1 (exclusive on both ends)
+MERGED[MERGED$right_z_diff < 0.1 & MERGED$right_z_diff > -0.1,]
+# using find in the matlab
+
+#count how many zeros we have?
+#print two column only 
+MERGED[MERGED$right_z_diff < 0.1 & MERGED$right_z_diff > -0.1, c("sample","right_heel_z")]
+# 126, 128 may be too close to each other
+# 4 of them stood out - may be the right one
+#1/200 
+#can combine with the force data 
+
+#calcualte the cadence 
+# 1. Filter rows where right_z_diff is near zero (step events)
+filtered_steps <- MERGED[MERGED$right_z_diff < 0.1 & MERGED$right_z_diff > -0.1, c("sample", "right_heel_z")]
+
+# 2. Remove NA rows if any
+filtered_steps <- na.omit(filtered_steps)
+
+filtered_steps <- filtered_steps[order(filtered_steps$sample), ]
+min_gap <- 15  # keeps your logic but avoids multiple picks per peak
+keep <- c(TRUE, diff(filtered_steps$sample) > min_gap)
+filtered_steps <- filtered_steps[keep, ]
+
+# 3. Extract the 'sample' column (time points)
+time_points <- filtered_steps$sample
+
+# 4. Calculate step-to-step durations
+step_durations <- diff(time_points)
+
+# 5. Compute average step duration
+avg_step_duration <- mean(step_durations, na.rm = TRUE)
+
+# 6. (Optional) Compute step frequency
+step_frequency <- 1 / avg_step_duration
+
+# 7. Print results
+cat("Average step duration:", avg_step_duration, "time units\n")
+cat("Average step frequency:", step_frequency, "steps per time unit\n")
+
+# Plot~
+ggplot(data=MERGED, aes(x=sample)) +
+  geom_point(aes(y=right_z_diff), shape=21, col=cbPalette[2])+
+  geom_point(aes(y=left_z_diff), shape=21, col=cbPalette[3])+
+  scale_y_continuous(name = "Change") +
+  scale_x_continuous(name = "Time (samples)")+
+  theme_bw()+
+  scale_fill_manual(values=cbPalette)+
+  scale_colour_manual(values=cbPalette)+
+  theme(axis.text=element_text(size=10, color="black"), 
+        axis.title=element_text(size=10, face="bold"),
+        plot.title=element_text(size=10, face="bold", hjust=0.5),
+        panel.grid.minor = element_blank(),
+        strip.text = element_text(size=10, face="bold"),
+        legend.title = element_text(size=10, face="bold"),
+        legend.text = element_text(size=10),
+        legend.position = "bottom")
 
