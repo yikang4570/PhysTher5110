@@ -1,21 +1,205 @@
-library(tidyverse);
+library(tidyverse)
+library(RColorBrewer)
+library(ggplot2)
 # By treating this workshop as an R project, we can use relative file paths that
 # allow you to open the data anywhere on any computer, provided you have downloaded 
 # the whole workshop folder.
-getwd()
 
+# Instrumentation Assignment ---------------------------------------------------
+#Question 1
+DATA1 <- read.csv("/Users/yikang/Documents/GitHub/PhysTher5110/data/data_overall_tendon_muscle.csv")
+set.seed(1234)
+DATA1 <- DATA1 %>%
+  mutate(
+    sex   = sample(c("F","M"), size = n(), replace = TRUE),
+    group = sample(c("Treatment","Control"), size = n(), replace = TRUE)
+  ) #generate F / M 
+DATA1 
+# Pick a colorblind-friendly palette
+my_colors <- brewer.pal(3, "Set2")[1:2]
+
+# Pick the continuous 
+y_var <- "linMod" 
+# --- Plot 1: Raw data with boxplots by sex ---
+ggplot(DATA1, aes(x = sex, y = .data[[y_var]], fill = sex)) +
+  geom_boxplot(color = "black", alpha = 0.3, width = 0.5, outlier.shape = NA) +
+  geom_point(pch = 21, color = "black", size = 2, alpha = 0.8,
+             position = position_jitter(width = 0.15, height = 0)) +
+  scale_fill_manual(values = my_colors) +
+  scale_x_discrete(name = "Sex", labels = c("Female", "Male")) +
+  scale_y_continuous(name = "Linear Modulus (MPa)") +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.title = element_text(face = "bold"),
+    panel.grid.minor = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5)
+  ) +
+  ggtitle("Linear Modulus by Sex in Mouse Model")
+
+# Question 2
+# panel 
+ggplot(DATA1, aes(x = group, y = .data[[y_var]], fill = group)) +
+  geom_boxplot(color = "black", alpha = 0.3, width = 0.5, outlier.shape = NA) +
+  geom_point(pch = 21, color = "black", size = 2, alpha = 0.8,
+             position = position_jitter(width = 0.15, height = 0)) +
+  scale_fill_manual(values = my_colors) +
+  scale_x_discrete(name = "Intervention") +
+  scale_y_continuous(name = "Linear Modulus (MPa)") +
+  facet_wrap(~ sex) +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.title  = element_text(face = "bold"),
+    axis.text   = element_text(color = "black", size = 12),
+    panel.grid.minor = element_blank(),
+    strip.text  = element_text(size = 14, face = "bold"),
+    legend.position = "none",
+    plot.title  = element_text(face = "bold", size = 16, hjust = 0.5)
+  ) +
+  ggtitle("Linear Modulus by Treatment Group, Faceted by Sex")
+
+#Question 3
+# --- Choose colorblind-friendly palette ---
+my_colors <- brewer.pal(3, "Dark2")[1:2]
+
+x_var <- "peakStress"
+y_var <- "percRelax"  
+
+# --- Scatter plot with regression line ---
+ggplot(DATA1, aes(x = .data[[x_var]], y = .data[[y_var]])) +
+  geom_point(color = brewer.pal(3, "Dark2")[2], size = 3, alpha = 0.8) +
+  geom_smooth(method = "lm", se = TRUE, color = brewer.pal(3, "Dark2")[1], lwd = 1.2) +
+  scale_x_continuous(name = "Peak Stress (MPa)") +
+  scale_y_continuous(name = "Percent Relaxation (%)") +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.title = element_text(face = "bold"),
+    axis.text  = element_text(color = "black", size = 12),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold", size = 16, hjust = 0.5)
+  ) +
+  ggtitle("Relationship Between Peak Stress and Percent Relaxation")
+
+#Question 4 
+qs <- quantile(DATA1$peakStress, probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+bin_labels <- paste0(
+  sprintf("%.2f", qs[-length(qs)]), "–", sprintf("%.2f", qs[-1])
+)
+
+DATA1 <- DATA1 %>%
+  mutate(
+    peakStress_bin = cut(
+      peakStress,
+      breaks = qs,
+      include.lowest = TRUE,
+      labels = bin_labels
+    )
+  )
+
+# --- Summarize outcome (percRelax) within bins ---
+SUM <- DATA1 %>%
+  group_by(peakStress_bin) %>%
+  summarise(
+    N   = sum(!is.na(percRelax)),
+    mean_y = mean(percRelax, na.rm = TRUE),
+    sd_y   = sd(percRelax, na.rm = TRUE),
+    se_y   = sd_y / sqrt(N),
+    ci95   = 1.96 * se_y,
+    .groups = "drop"
+  ) %>%
+  # keep factors ordered from low to high
+  mutate(peakStress_bin = factor(peakStress_bin, levels = bin_labels))
+
+# --- Choose colorblind-friendly palette ---
+col_points <- brewer.pal(3, "Dark2")[2]
+col_error  <- brewer.pal(3, "Dark2")[1]
+
+# --- Plot: mean ± 95% CI by peakStress quartile ---
+ggplot(SUM, aes(x = peakStress_bin, y = mean_y)) +
+  geom_point(size = 3, color = "black", fill = col_points, pch = 21) +
+  geom_errorbar(aes(ymin = mean_y - ci95, ymax = mean_y + ci95),
+                width = 0.15, size = 0.8, color = col_error) +
+  # If you prefer SD instead of 95% CI, replace ci95 with sd_y above:
+  # geom_errorbar(aes(ymin = mean_y - sd_y, ymax = mean_y + sd_y), ...)
+  geom_line(aes(group = 1), color = "grey40", linewidth = 0.8) +
+  labs(
+    x = "Peak Stress (MPa) — Quartile Bins",
+    y = "Percent Relaxation (%)",
+    title = "Percent Relaxation by Peak Stress Quartiles (Mean ± 95% CI)"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.title = element_text(face = "bold"),
+    axis.text  = element_text(color = "black"),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold", hjust = 0.5)
+  )
+
+#Q4 -2 
+# --- Plot: raw data + mean ± 95% CI per quartile ---
+dot_color <- brewer.pal(3, "Dark2")[2]
+error_color <- brewer.pal(3, "Dark2")[1]
+
+ggplot() +
+  # raw dots
+  geom_jitter(
+    data = DATA1,
+    aes(x = peakStress_bin, y = .data[[y_var]]),
+    width = 0.15,
+    alpha = 0.6,
+    color = dot_color,
+    size = 2
+  ) +
+  # mean ± 95% CI
+  geom_point(
+    data = SUM,
+    aes(x = peakStress_bin, y = mean_y),
+    fill = "white",
+    color = "black",
+    size = 3,
+    shape = 21,
+    stroke = 0.8
+  ) +
+  geom_errorbar(
+    data = SUM,
+    aes(
+      x = peakStress_bin,
+      ymin = mean_y - ci95,
+      ymax = mean_y + ci95
+    ),
+    width = 0.1,
+    color = error_color,
+    linewidth = 1
+  ) +
+  geom_line(
+    data = SUM,
+    aes(x = as.numeric(peakStress_bin), y = mean_y, group = 1),
+    color = "grey40",
+    linewidth = 0.8
+  ) +
+  labs(
+    x = "Peak Stress (MPa) — Quartile Bins",
+    y = "Percent Relaxation (%)",
+    title = "Percent Relaxation by Peak Stress Quartiles (Raw Data + Mean ± 95% CI)"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.title = element_text(face = "bold"),
+    axis.text  = element_text(color = "black"),
+    panel.grid.minor = element_blank(),
+    plot.title = element_text(face = "bold", hjust = 0.5)
+  )
 
 ## 1.0 Plotting Discrete Data --------------------------------------------------
 # Anscombe's Quartet and the Importance of Checking Assumptions
-DAT1 <- read.csv("./data/data_ANSCOMBE.csv", header = TRUE, sep = ",")
-head(DAT1)
-
+#DAT1 <- read.csv("./data/data_ANSCOMBE.csv", header = TRUE, sep = ",")
+#head(DAT1)
 
 ## Regression Coefficients ---- 
-COEFS<-DAT1 %>%
-  group_by(group) %>%
-  summarise(Intercept=lm(yVal~xVal, data=DAT1)$coefficients[1],
-            Slope=lm(yVal~xVal, data=DAT1)$coefficients[2],
+COEFS<-DATA1 %>%
+  group_by(ID) %>%
+  summarise(Intercept=lm(yVal~xVal, data=DATA1)$coefficients[1],
+            Slope=lm(yVal~xVal, data=DATA1)$coefficients[2],
             MeanY=mean(yVal),
             SDY = sd(yVal),
             MeanX=mean(xVal),
